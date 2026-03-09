@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>KETA Admin Panel</title>
+  <link rel="stylesheet" href="admin.css"/>
+  <link rel="icon" href="Assets/logo2.png" type="image/png"/>
+</head>
+<body>
+
+<!-- ══ ADMIN LOGIN SCREEN ════════════════════════════ -->
+<div id="admin-login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon"><img src="Assets/logo2.png" alt="KETA Logo" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);"/></div>
+      <h1>KETA ADMIN</h1>
+      <p>Secure Admin Portal</p>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <label class="login-label" for="login-email">Email Address</label>
+    <input class="login-input" type="email" id="login-email" placeholder="admin@keta.com" autocomplete="username" required/>
+    <label class="login-label" for="login-password">Password</label>
+    <input class="login-input" type="password" id="login-password" placeholder="••••••••••" autocomplete="current-password" required/>
+    <button class="login-btn" id="login-btn" onclick="adminLogin()">Sign In to Admin Panel</button>
+    <p style="text-align:center;margin-top:20px;font-size:0.78rem;color:var(--grey)">
+      <a href="index.html" style="color:var(--gold)">← Back to Website</a>
+    </p>
+  </div>
+</div>
+
+<!-- ══ ADMIN SHELL ═══════════════════════════════════ -->
+<div id="admin-shell">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">KETA ADMIN</div>
+      <div class="brand-sub">Management Console</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Overview</div>
+        <button class="sidebar-link active" onclick="showPanel('dashboard')" id="link-dashboard">
+          <span class="link-icon">📊</span> Dashboard
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Content</div>
+        <button class="sidebar-link" onclick="showPanel('marquee')" id="link-marquee">
+          <span class="link-icon">📣</span> Marquee News
+        </button>
+        <button class="sidebar-link" onclick="showPanel('photos')" id="link-photos">
+          <span class="link-icon">📸</span> Photos / Gallery
+        </button>
+        <button class="sidebar-link" onclick="showPanel('events')" id="link-events">
+          <span class="link-icon">📅</span> Events & Calendar
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Students</div>
+        <button class="sidebar-link" onclick="showPanel('submissions')" id="link-submissions">
+          <span class="link-icon">📥</span> Form Submissions
+          <span class="submission-badge" id="new-count" style="display:none">0</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Settings</div>
+        <button class="sidebar-link" onclick="showPanel('settings')" id="link-settings">
+          <span class="link-icon">⚙️</span> Site Settings
+        </button>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="name" id="sidebar-name">Admin</div>
+          <div class="role">Chief Administrator</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="adminLogout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left">
+        <h2 id="topbar-title">Dashboard</h2>
+        <p id="topbar-sub">Welcome back!</p>
+      </div>
+      <div class="topbar-right">
+        <a href="index.html" target="_blank" rel="noopener" class="btn-admin btn-outline">🌐 View Site</a>
+        <button class="btn-admin btn-gold" id="topbar-action" onclick="topbarAction()">+ Add Content</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ══ DASHBOARD PANEL ══════════════════════════ -->
+      <div class="admin-panel active" id="panel-dashboard">
+        <div class="stats-row">
+          <div class="stat-card gold">
+            <div class="stat-card-icon">📸</div>
+            <div class="stat-card-num" id="stat-photos">0</div>
+            <div class="stat-card-label">Total Photos</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-card-icon">📥</div>
+            <div class="stat-card-num" id="stat-submissions">0</div>
+            <div class="stat-card-label">Form Submissions</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-card-icon">📅</div>
+            <div class="stat-card-num" id="stat-events">0</div>
+            <div class="stat-card-label">Events</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-card-icon">📣</div>
+            <div class="stat-card-num" id="stat-marquee">0</div>
+            <div class="stat-card-label">Marquee Items</div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">📊 Quick Actions</span>
+          </div>
+          <div class="admin-card-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px">
+            <button class="btn-admin btn-gold" onclick="showPanel('photos')" style="padding:20px;flex-direction:column;height:auto;gap:10px;font-size:0.85rem">
+              📸<br>Upload Photos
+            </button>
+            <button class="btn-admin btn-red" onclick="showPanel('marquee')" style="padding:20px;flex-direction:column;height:auto;gap:10px;font-size:0.85rem">
+              📣<br>Edit Marquee
+            </button>
+            <button class="btn-admin btn-outline" onclick="showPanel('events')" style="padding:20px;flex-direction:column;height:auto;gap:10px;font-size:0.85rem">
+              📅<br>Add Event
+            </button>
+            <button class="btn-admin btn-outline" onclick="showPanel('submissions')" style="padding:20px;flex-direction:column;height:auto;gap:10px;font-size:0.85rem">
+              📥<br>View Submissions
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">📥 Recent Submissions</span>
+          </div>
+          <div class="admin-card-body" id="recent-submissions-list">
+            <p style="color:var(--grey);font-size:0.85rem">Loading submissions...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MARQUEE PANEL ════════════════════════════ -->
+      <div class="admin-panel" id="panel-marquee">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">📣 Manage Marquee News</span>
+            <button class="btn-admin btn-gold" onclick="addMarqueeItem()">+ Add Item</button>
+          </div>
+          <div class="admin-card-body">
+            <p style="color:var(--grey);font-size:0.82rem;margin-bottom:20px">
+              Edit the text directly in each field. Click "Save All" when done. Items appear in order below.
+            </p>
+            <ul class="marquee-items-list" id="marquee-items-list">
+              <li style="color:var(--grey);font-size:0.85rem;padding:16px 0">Loading marquee items...</li>
+            </ul>
+            <div style="margin-top:20px;display:flex;gap:12px">
+              <button class="btn-admin btn-gold" onclick="saveMarqueeItems()">💾 Save All Marquee</button>
+              <button class="btn-admin btn-outline" onclick="addMarqueeItem()">+ Add New Item</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">👁 Preview</span>
+          </div>
+          <div class="admin-card-body">
+            <div style="background:var(--red);padding:10px 20px;border-radius:6px;overflow:hidden;position:relative">
+              <span style="font-size:0.7rem;letter-spacing:0.2em;color:var(--gold);font-weight:700;margin-right:20px">📣 NEWS</span>
+              <span id="marquee-preview" style="color:var(--white);font-size:0.85rem"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PHOTOS PANEL ═════════════════════════════ -->
+      <div class="admin-panel" id="panel-photos">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">📸 Photo Gallery Manager</span>
+          </div>
+          <div class="admin-card-body">
+            <div class="section-tabs" id="photo-section-tabs">
+              <button class="section-tab active" data-section="all"           onclick="switchPhotoSection(this,'all')">All Photos</button>
+              <button class="section-tab"         data-section="little-tigers" onclick="switchPhotoSection(this,'little-tigers')">🐯 Little Tigers</button>
+              <button class="section-tab"         data-section="core-tigers"   onclick="switchPhotoSection(this,'core-tigers')">🔥 Core Tigers</button>
+              <button class="section-tab"         data-section="teens-adults"  onclick="switchPhotoSection(this,'teens-adults')">⚡ Teens & Adults</button>
+              <button class="section-tab"         data-section="family"        onclick="switchPhotoSection(this,'family')">👨‍👩‍👧 Family</button>
+              <button class="section-tab"         data-section="events-gallery"onclick="switchPhotoSection(this,'events-gallery')">🏆 Events</button>
+            </div>
+
+            <div id="upload-section-label" style="font-size:0.72rem;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;font-weight:600">
+              UPLOADING TO: ALL PHOTOS
+            </div>
+
+            <!-- Upload Zone -->
+            <div class="photo-upload-zone" id="upload-zone" onclick="document.getElementById('photo-file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+              <div class="upload-icon">☁️</div>
+              <div class="upload-title">Click to Upload or Drag & Drop</div>
+              <div class="upload-sub">PNG, JPG, WEBP · Max 10MB per file · Multiple files supported</div>
+              <input type="file" id="photo-file-input" class="upload-input" accept="image/jpeg,image/png,image/webp" multiple onchange="handleFileSelect(event)"/>
+            </div>
+
+            <div class="upload-progress" id="upload-progress">
+              <div class="upload-progress-bar" id="upload-progress-bar"></div>
+            </div>
+
+            <div id="upload-status" style="font-size:0.82rem;color:var(--grey);margin:8px 0 20px"></div>
+
+            <!-- Caption input for new uploads -->
+            <div style="display:flex;gap:12px;margin-bottom:20px">
+              <input class="admin-input" type="text" id="photo-caption" placeholder="Caption for uploaded photos (optional)" style="margin-bottom:0"/>
+            </div>
+
+            <!-- Photos Grid -->
+            <div id="photos-grid-wrap">
+              <p style="font-size:0.72rem;letter-spacing:0.15em;color:var(--gold);text-transform:uppercase;margin-bottom:12px;font-weight:600">
+                EXISTING PHOTOS <span id="photo-count" style="color:var(--grey);font-weight:400"></span>
+              </p>
+              <div class="photos-grid" id="photos-grid">
+                <p style="color:var(--grey);font-size:0.85rem;grid-column:1/-1">Loading photos...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EVENTS PANEL ═════════════════════════════ -->
+      <div class="admin-panel" id="panel-events">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">📅 Add New Event</span>
+          </div>
+          <div class="admin-card-body">
+            <div class="admin-form-row">
+              <div>
+                <label class="admin-label" for="ev-name">Event Name *</label>
+                <input class="admin-input" type="text" id="ev-name" placeholder="Belt Promotion Test"/>
+              </div>
+              <div>
+                <label class="admin-label" for="ev-date">Date *</label>
+                <input class="admin-input" type="date" id="ev-date"/>
+              </div>
+            </div>
+            <div class="admin-form-row">
+              <div>
+                <label class="admin-label" for="ev-time">Time</label>
+                <input class="admin-input" type="text" id="ev-time" placeholder="10:00am – 2:00pm"/>
+              </div>
+              <div>
+                <label class="admin-label" for="ev-location">Location</label>
+                <input class="admin-input" type="text" id="ev-location" placeholder="Enola, PA" value="Enola, PA"/>
+              </div>
+            </div>
+            <label class="admin-label" for="ev-desc">Description</label>
+            <textarea class="admin-textarea" id="ev-desc" placeholder="Event details..."></textarea>
+            <button class="btn-admin btn-gold" onclick="addEvent()">📅 Add Event</button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">📋 All Events</span>
+          </div>
+          <div class="admin-card-body">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Event</th>
+                  <th>Time</th>
+                  <th>Location</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="events-table-body">
+                <tr><td colspan="5" style="color:var(--grey)">Loading events...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SUBMISSIONS PANEL ════════════════════════ -->
+      <div class="admin-panel" id="panel-submissions">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">📥 Enrollment Form Submissions</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn-admin btn-outline" onclick="exportSubmissions()">⬇ Export CSV</button>
+              <button class="btn-admin btn-outline" onclick="loadSubmissions()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="admin-card-body">
+            <p style="color:var(--grey);font-size:0.82rem;margin-bottom:16px">
+              These are stored in Firestore from your Formspree webhook or direct Firebase submissions.
+            </p>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Parent</th>
+                  <th>Child</th>
+                  <th>Class</th>
+                  <th>Contact</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="submissions-table-body">
+                <tr><td colspan="7" style="color:var(--grey)">Loading submissions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS PANEL ═══════════════════════════ -->
+      <div class="admin-panel" id="panel-settings">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">⚙️ Site Settings</span>
+          </div>
+          <div class="admin-card-body">
+            <label class="admin-label">Academy Name</label>
+            <input class="admin-input" type="text" id="setting-name" value="Keystone Taekwondo Academy"/>
+            <label class="admin-label">Phone Number</label>
+            <input class="admin-input" type="text" id="setting-phone" value="701-203-6535"/>
+            <label class="admin-label">Email</label>
+            <input class="admin-input" type="email" id="setting-email" value="keystonetaekwondo@gmail.com"/>
+            <label class="admin-label">Address</label>
+            <input class="admin-input" type="text" id="setting-address" value="374 East Penn Drive, Enola, PA 17025"/>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--black-border);margin-bottom:16px">
+              <div>
+                <div style="font-weight:600;color:var(--white)">Free Trial Class Feature</div>
+                <div style="font-size:0.8rem;color:var(--grey);margin-top:2px">Show/hide the Free Trial section on the homepage</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="setting-free-trial" checked/>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--black-border);margin-bottom:16px">
+              <div>
+                <div style="font-weight:600;color:var(--white)">Marquee News Ticker</div>
+                <div style="font-size:0.8rem;color:var(--grey);margin-top:2px">Enable/disable the top news ticker</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="setting-marquee" checked/>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div style="margin-top:8px">
+              <label class="admin-label">Change Admin Password</label>
+              <div class="admin-form-row">
+                <input class="admin-input" type="password" id="new-password" placeholder="New password (min 8 chars)" autocomplete="new-password"/>
+                <input class="admin-input" type="password" id="confirm-password" placeholder="Confirm new password" autocomplete="new-password"/>
+              </div>
+              <button class="btn-admin btn-outline" onclick="changePassword()">🔒 Update Password</button>
+            </div>
+
+            <div style="margin-top:24px">
+              <button class="btn-admin btn-gold" onclick="saveSettings()">💾 Save Settings</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">🔧 Configuration Guide</span>
+          </div>
+          <div class="admin-card-body">
+            <div style="display:grid;gap:12px">
+              <div style="background:var(--black-soft);border:1px solid var(--black-border);border-radius:var(--radius);padding:16px">
+                <div style="font-family:var(--font-display);color:var(--gold);letter-spacing:0.08em;margin-bottom:6px">FIREBASE</div>
+                <div style="font-size:0.82rem;color:var(--grey);line-height:1.7">
+                  Edit <code style="color:var(--gold-light);background:rgba(212,160,23,0.1);padding:2px 6px;border-radius:3px">js/config.js</code>
+                  with your Firebase project config from the Firebase Console.
+                </div>
+              </div>
+              <div style="background:var(--black-soft);border:1px solid var(--black-border);border-radius:var(--radius);padding:16px">
+                <div style="font-family:var(--font-display);color:var(--gold);letter-spacing:0.08em;margin-bottom:6px">CLOUDINARY</div>
+                <div style="font-size:0.82rem;color:var(--grey);line-height:1.7">
+                  Set your Cloud Name and create an unsigned upload preset named
+                  <code style="color:var(--gold-light);background:rgba(212,160,23,0.1);padding:2px 6px;border-radius:3px">keta_unsigned</code>
+                  in your Cloudinary Dashboard.
+                </div>
+              </div>
+              <div style="background:var(--black-soft);border:1px solid var(--black-border);border-radius:var(--radius);padding:16px">
+                <div style="font-family:var(--font-display);color:var(--gold);letter-spacing:0.08em;margin-bottom:6px">FORMSPREE</div>
+                <div style="font-size:0.82rem;color:var(--grey);line-height:1.7">
+                  Replace <code style="color:var(--gold-light);background:rgba(212,160,23,0.1);padding:2px 6px;border-radius:3px">YOUR_FORM_ID</code>
+                  in index.html with your Formspree form endpoint ID.
+                </div>
+              </div>
+              <div style="background:var(--black-soft);border:1px solid var(--black-border);border-radius:var(--radius);padding:16px">
+                <div style="font-family:var(--font-display);color:var(--gold);letter-spacing:0.08em;margin-bottom:6px">FIREBASE AUTH</div>
+                <div style="font-size:0.82rem;color:var(--grey);line-height:1.7">
+                  Enable Email/Password Authentication in Firebase Console > Authentication > Sign-in method.
+                  Create your admin user there.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end admin-content -->
+  </main>
+</div><!-- end admin-shell -->
+
+<!-- Admin Toast -->
+<div class="admin-toast" id="admin-toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp }          from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword }
+                                    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc,
+           setDoc, onSnapshot, query, orderBy, serverTimestamp, getCountFromServer }
+                                    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ── Replace with your config ──────────────────────
+  const firebaseConfig = {
+    apiKey:            "YOUR_API_KEY",
+    authDomain:        "YOUR_PROJECT.firebaseapp.com",
+    projectId:         "YOUR_PROJECT_ID",
+    storageBucket:     "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId:             "YOUR_APP_ID"
+  };
+
+  const CLOUDINARY_CLOUD  = "YOUR_CLOUD_NAME";
+  const CLOUDINARY_PRESET = "keta_unsigned";
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  // ── Sanitize ──────────────────────────────────────
+  function sanitize(str) {
+    if (typeof str !== "string") return "";
+    const d = document.createElement("div");
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  // ── Auth State ────────────────────────────────────
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("admin-login-screen").style.display = "none";
+      document.getElementById("admin-shell").classList.add("visible");
+      const name = (user.email || "Admin").split("@")[0];
+      document.getElementById("sidebar-name").textContent = name;
+      document.getElementById("sidebar-avatar").textContent = name[0].toUpperCase();
+      document.getElementById("topbar-sub").textContent = `Signed in as ${user.email}`;
+      initAdmin(user);
+    } else {
+      document.getElementById("admin-login-screen").style.display = "flex";
+      document.getElementById("admin-shell").classList.remove("visible");
+    }
+  });
+
+  // ── Login ─────────────────────────────────────────
+  window.adminLogin = async function() {
+    const email    = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    const errEl    = document.getElementById("login-error");
+    const btn      = document.getElementById("login-btn");
+
+    errEl.classList.remove("show");
+
+    if (!email || !password) {
+      errEl.textContent = "Please enter email and password.";
+      errEl.classList.add("show");
+      return;
+    }
+
+    btn.textContent = "Signing in...";
+    btn.disabled    = true;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch(e) {
+      const msgs = {
+        "auth/invalid-credential": "Invalid email or password.",
+        "auth/user-not-found":     "No account found with this email.",
+        "auth/wrong-password":     "Incorrect password.",
+        "auth/too-many-requests":  "Too many attempts. Please wait and try again.",
+        "auth/network-request-failed": "Network error. Please check your connection.",
+      };
+      errEl.textContent = msgs[e.code] || "Sign in failed. Please try again.";
+      errEl.classList.add("show");
+      btn.textContent = "Sign In to Admin Panel";
+      btn.disabled = false;
+    }
+  };
+
+  // Allow enter key to submit login
+  document.getElementById("login-password")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") window.adminLogin();
+  });
+
+  // ── Logout ────────────────────────────────────────
+  window.adminLogout = async function() {
+    await signOut(auth);
+    adminToast("👋 Signed out successfully.", "");
+  };
+
+  // ── Initialize Admin ──────────────────────────────
+  function initAdmin(user) {
+    loadDashboard();
+    loadMarquee();
+    loadPhotos("all");
+    loadEventsTable();
+    loadSubmissions();
+  }
+
+  // ── Dashboard ─────────────────────────────────────
+  async function loadDashboard() {
+    try {
+      const [photos, submissions, events, marquee] = await Promise.all([
+        getCountFromServer(collection(db, "photos")),
+        getCountFromServer(collection(db, "submissions")),
+        getCountFromServer(collection(db, "events")),
+        getCountFromServer(collection(db, "marquee")),
+      ]);
+
+      document.getElementById("stat-photos").textContent      = photos.data().count;
+      document.getElementById("stat-submissions").textContent = submissions.data().count;
+      document.getElementById("stat-events").textContent      = events.data().count;
+      document.getElementById("stat-marquee").textContent     = marquee.data().count;
+    } catch(e) { console.warn("Dashboard stats:", e.message); }
+
+    // Recent submissions
+    try {
+      const snap = await getDocs(query(collection(db, "submissions"), orderBy("createdAt","desc")));
+      const list = document.getElementById("recent-submissions-list");
+      if (snap.empty) {
+        list.innerHTML = `<p style="color:var(--grey);font-size:0.85rem">No submissions yet.</p>`;
+        return;
+      }
+      let html = `<table class="admin-table"><thead><tr><th>Parent</th><th>Child</th><th>Class</th><th>Date</th></tr></thead><tbody>`;
+      let i = 0;
+      snap.forEach(d => {
+        if (i++ >= 5) return;
+        const data = d.data();
+        const date = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : "—";
+        html += `<tr>
+          <td>${sanitize(data.parent_name || "—")}</td>
+          <td>${sanitize(data.child_name  || "—")}</td>
+          <td>${sanitize(data.class_interest || "—")}</td>
+          <td>${date}</td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      list.innerHTML = html;
+    } catch(e) { console.warn("Recent submissions:", e.message); }
+  }
+
+  // ── Marquee ───────────────────────────────────────
+  window._marqueeItems = [];
+
+  async function loadMarquee() {
+    try {
+      const snap = await getDocs(query(collection(db, "marquee"), orderBy("order")));
+      window._marqueeItems = [];
+      snap.forEach(d => window._marqueeItems.push({ id: d.id, ...d.data() }));
+      renderMarqueeList();
+    } catch(e) {
+      // First run — show default items
+      window._marqueeItems = [
+        { id: null, text: "Welcome to Keystone Taekwondo Academy!" },
+        { id: null, text: "Free Trial Class Available — Register Today!" },
+        { id: null, text: "Belt Promotion Test — 05/31/2025 · Enola, PA" },
+      ];
+      renderMarqueeList();
+    }
+  }
+
+  function renderMarqueeList() {
+    const list = document.getElementById("marquee-items-list");
+    if (!list) return;
+    if (window._marqueeItems.length === 0) {
+      list.innerHTML = `<li style="color:var(--grey);font-size:0.85rem;padding:16px 0">No items yet. Click "+ Add Item".</li>`;
+      return;
+    }
+    list.innerHTML = window._marqueeItems.map((item, i) => `
+      <li class="marquee-item-row" data-index="${i}">
+        <span class="marquee-item-drag" title="Drag to reorder">⠿</span>
+        <input class="marquee-item-text" type="text" value="${sanitize(item.text)}" data-index="${i}" aria-label="Marquee item ${i+1}"/>
+        <button class="marquee-item-delete" onclick="deleteMarqueeItem(${i})" aria-label="Delete item">✕</button>
+      </li>
+    `).join("");
+    updateMarqueePreview();
+  }
+
+  window.addMarqueeItem = function() {
+    window._marqueeItems.push({ id: null, text: "New announcement..." });
+    renderMarqueeList();
+    const inputs = document.querySelectorAll(".marquee-item-text");
+    const last = inputs[inputs.length - 1];
+    if (last) { last.focus(); last.select(); }
+  };
+
+  window.deleteMarqueeItem = function(i) {
+    window._marqueeItems.splice(i, 1);
+    renderMarqueeList();
+  };
+
+  window.saveMarqueeItems = async function() {
+    // Collect current values from inputs
+    document.querySelectorAll(".marquee-item-text").forEach((inp, i) => {
+      if (window._marqueeItems[i]) window._marqueeItems[i].text = inp.value.trim();
+    });
+
+    try {
+      // Delete all existing and rewrite
+      const snap = await getDocs(collection(db, "marquee"));
+      const deletes = [];
+      snap.forEach(d => deletes.push(deleteDoc(doc(db, "marquee", d.id))));
+      await Promise.all(deletes);
+
+      const adds = window._marqueeItems
+        .filter(m => m.text)
+        .map((m, i) => addDoc(collection(db, "marquee"), { text: m.text, order: i }));
+      await Promise.all(adds);
+
+      adminToast("✅ Saved!", "Marquee updated on the website.");
+      updateMarqueePreview();
+    } catch(e) {
+      adminToast("❌ Error", "Failed to save: " + e.message, "error");
+    }
+  };
+
+  function updateMarqueePreview() {
+    const items = window._marqueeItems.map(m => m.text).join("   ·   ");
+    const el = document.getElementById("marquee-preview");
+    if (el) el.textContent = items || "No items";
+  }
+
+  // ── Photos ────────────────────────────────────────
+  let currentPhotoSection = "all";
+
+  window.switchPhotoSection = function(btn, section) {
+    document.querySelectorAll(".section-tab").forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+    currentPhotoSection = section;
+    const lbl = document.getElementById("upload-section-label");
+    if (lbl) lbl.textContent = "UPLOADING TO: " + section.toUpperCase().replace("-", " ");
+    loadPhotos(section);
+  };
+
+  async function loadPhotos(section) {
+    const grid = document.getElementById("photos-grid");
+    const countEl = document.getElementById("photo-count");
+    if (!grid) return;
+    grid.innerHTML = `<p style="color:var(--grey);font-size:0.85rem;grid-column:1/-1">Loading...</p>`;
+
+    try {
+      const snap = await getDocs(query(collection(db, "photos"), orderBy("uploadedAt", "desc")));
+      const photos = [];
+      snap.forEach(d => {
+        const data = d.data();
+        if (section === "all" || data.category === section) photos.push({ id: d.id, ...data });
+      });
+
+      if (countEl) countEl.textContent = `(${photos.length})`;
+
+      if (photos.length === 0) {
+        grid.innerHTML = `<p style="color:var(--grey);font-size:0.85rem;grid-column:1/-1">No photos in this section yet. Upload some!</p>`;
+        return;
+      }
+
+      grid.innerHTML = photos.map(p => `
+        <div class="photo-item" data-id="${p.id}">
+          <img src="${sanitize(p.url)}" alt="${sanitize(p.caption || p.category)}" loading="lazy"/>
+          <div class="photo-item-overlay">
+            <button class="photo-action-btn delete" onclick="deletePhoto('${p.id}')" aria-label="Delete photo">🗑</button>
+          </div>
+        </div>
+      `).join("");
+    } catch(e) {
+      grid.innerHTML = `<p style="color:var(--red);grid-column:1/-1">Error loading: ${sanitize(e.message)}</p>`;
+    }
+  }
+
+  // ── Handle Drag & Drop ─────────────────────────────
+  window.handleDragOver = function(e) {
+    e.preventDefault();
+    document.getElementById("upload-zone").classList.add("drag-over");
+  };
+  window.handleDragLeave = function() {
+    document.getElementById("upload-zone").classList.remove("drag-over");
+  };
+  window.handleDrop = function(e) {
+    e.preventDefault();
+    document.getElementById("upload-zone").classList.remove("drag-over");
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    if (files.length) uploadFiles(files);
+  };
+  window.handleFileSelect = function(e) {
+    const files = Array.from(e.target.files);
+    if (files.length) uploadFiles(files);
+  };
+
+  // ── Upload to Cloudinary + Save to Firestore ──────
+  async function uploadFiles(files) {
+    const caption  = document.getElementById("photo-caption")?.value.trim() || "";
+    const progress = document.getElementById("upload-progress");
+    const bar      = document.getElementById("upload-progress-bar");
+    const status   = document.getElementById("upload-status");
+
+    // Validate
+    const MAX_SIZE = 10 * 1024 * 1024;
+    for (const f of files) {
+      if (f.size > MAX_SIZE) {
+        adminToast("❌ Error", `${f.name} exceeds 10MB limit.`, "error");
+        return;
+      }
+    }
+
+    progress.classList.add("active");
+    status.textContent = `Uploading 0 / ${files.length}...`;
+
+    let uploaded = 0;
+    for (const file of files) {
+      try {
+        bar.style.width = `${Math.round((uploaded / files.length) * 100)}%`;
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", CLOUDINARY_PRESET);
+        formData.append("folder", `keta/${currentPhotoSection}`);
+
+        const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error(`Cloudinary error: ${res.status}`);
+        const data = await res.json();
+
+        // Save URL + metadata to Firestore
+        await addDoc(collection(db, "photos"), {
+          url:        data.secure_url,
+          publicId:   data.public_id,
+          category:   currentPhotoSection,
+          caption:    caption,
+          width:      data.width,
+          height:     data.height,
+          uploadedAt: serverTimestamp(),
+        });
+
+        uploaded++;
+        status.textContent = `Uploaded ${uploaded} / ${files.length}`;
+      } catch(e) {
+        adminToast("❌ Upload Failed", e.message, "error");
+      }
+    }
+
+    bar.style.width = "100%";
+    setTimeout(() => {
+      progress.classList.remove("active");
+      bar.style.width = "0";
+      status.textContent = "";
+    }, 1500);
+
+    document.getElementById("photo-file-input").value = "";
+    document.getElementById("photo-caption").value    = "";
+    adminToast("✅ Uploaded!", `${uploaded} photo(s) added to ${currentPhotoSection}.`);
+    loadPhotos(currentPhotoSection);
+    loadDashboard();
+  }
+
+  // ── Delete Photo ───────────────────────────────────
+  window.deletePhoto = async function(id) {
+    if (!confirm("Delete this photo? This cannot be undone.")) return;
+    try {
+      await deleteDoc(doc(db, "photos", id));
+      adminToast("🗑 Deleted", "Photo removed.");
+      loadPhotos(currentPhotoSection);
+      loadDashboard();
+    } catch(e) {
+      adminToast("❌ Error", e.message, "error");
+    }
+  };
+
+  // ── Events ────────────────────────────────────────
+  async function loadEventsTable() {
+    const tbody = document.getElementById("events-table-body");
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--grey)">Loading...</td></tr>`;
+
+    try {
+      const snap = await getDocs(query(collection(db, "events"), orderBy("date", "desc")));
+      if (snap.empty) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--grey)">No events yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = "";
+      snap.forEach(d => {
+        const ev = d.data();
+        const date = ev.date ? new Date(ev.date).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" }) : "—";
+        tbody.innerHTML += `
+          <tr>
+            <td>${date}</td>
+            <td>${sanitize(ev.name || "—")}</td>
+            <td>${sanitize(ev.time || "—")}</td>
+            <td>${sanitize(ev.location || "—")}</td>
+            <td>
+              <button class="btn-admin btn-danger" onclick="deleteEvent('${d.id}')" style="padding:6px 12px;font-size:0.75rem">Delete</button>
+            </td>
+          </tr>`;
+      });
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--red)">${sanitize(e.message)}</td></tr>`;
+    }
+  }
+
+  window.addEvent = async function() {
+    const name     = document.getElementById("ev-name").value.trim();
+    const date     = document.getElementById("ev-date").value;
+    const time     = document.getElementById("ev-time").value.trim();
+    const location = document.getElementById("ev-location").value.trim();
+    const desc     = document.getElementById("ev-desc").value.trim();
+
+    if (!name || !date) {
+      adminToast("⚠️ Missing", "Event name and date are required.", "error");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "events"), {
+        name, date, time, location, desc,
+        createdAt: serverTimestamp()
+      });
+      adminToast("✅ Event Added!", name);
+      document.getElementById("ev-name").value = "";
+      document.getElementById("ev-date").value = "";
+      document.getElementById("ev-time").value = "";
+      document.getElementById("ev-desc").value = "";
+      loadEventsTable();
+      loadDashboard();
+    } catch(e) {
+      adminToast("❌ Error", e.message, "error");
+    }
+  };
+
+  window.deleteEvent = async function(id) {
+    if (!confirm("Delete this event?")) return;
+    try {
+      await deleteDoc(doc(db, "events", id));
+      adminToast("🗑 Deleted", "Event removed.");
+      loadEventsTable();
+      loadDashboard();
+    } catch(e) {
+      adminToast("❌ Error", e.message, "error");
+    }
+  };
+
+  // ── Submissions ───────────────────────────────────
+  window.loadSubmissions = async function() {
+    const tbody = document.getElementById("submissions-table-body");
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--grey)">Loading...</td></tr>`;
+
+    try {
+      const snap = await getDocs(query(collection(db, "submissions"), orderBy("createdAt", "desc")));
+      if (snap.empty) {
+        tbody.innerHTML = `<tr><td colspan="7" style="color:var(--grey)">No submissions yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = "";
+      let newCount = 0;
+      snap.forEach(d => {
+        const s = d.data();
+        const date = s.createdAt?.toDate ? s.createdAt.toDate().toLocaleDateString() : "—";
+        const status = s.status || "new";
+        if (status === "new") newCount++;
+        tbody.innerHTML += `
+          <tr>
+            <td>${date}</td>
+            <td>${sanitize(s.parent_name || "—")}</td>
+            <td>${sanitize(s.child_name  || "—")}, ${sanitize(String(s.child_age || "—"))}</td>
+            <td>${sanitize(s.class_interest || "—")}</td>
+            <td>
+              <a href="tel:${sanitize(s.phone || "")}" style="color:var(--gold)">${sanitize(s.phone || "—")}</a><br>
+              <a href="mailto:${sanitize(s.email || "")}" style="color:var(--gold-light);font-size:0.8rem">${sanitize(s.email || "—")}</a>
+            </td>
+            <td><span class="status-badge status-${status}">${status}</span></td>
+            <td>
+              <button class="btn-admin btn-outline" onclick="markRead('${d.id}')" style="padding:5px 10px;font-size:0.72rem">Mark Read</button>
+            </td>
+          </tr>`;
+      });
+
+      // Update badge
+      const badge = document.getElementById("new-count");
+      if (badge) {
+        badge.textContent = newCount;
+        badge.style.display = newCount > 0 ? "inline-flex" : "none";
+      }
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red)">${sanitize(e.message)}</td></tr>`;
+    }
+  };
+
+  window.markRead = async function(id) {
+    try {
+      await updateDoc(doc(db, "submissions", id), { status: "read" });
+      window.loadSubmissions();
+    } catch(e) { adminToast("❌", e.message, "error"); }
+  };
+
+  window.exportSubmissions = async function() {
+    try {
+      const snap = await getDocs(query(collection(db, "submissions"), orderBy("createdAt","desc")));
+      const rows = ["Date,Parent,Child,Age,Class,Phone,Email,Message,Status"];
+      snap.forEach(d => {
+        const s = d.data();
+        const date = s.createdAt?.toDate ? s.createdAt.toDate().toLocaleDateString() : "";
+        rows.push([
+          date,
+          `"${(s.parent_name||"").replace(/"/g,'""')}"`,
+          `"${(s.child_name ||"").replace(/"/g,'""')}"`,
+          s.child_age || "",
+          s.class_interest || "",
+          s.phone || "",
+          s.email || "",
+          `"${(s.message||"").replace(/"/g,'""')}"`,
+          s.status || "new"
+        ].join(","));
+      });
+      const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href = url;
+      a.download = `keta-submissions-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch(e) {
+      adminToast("❌ Export failed", e.message, "error");
+    }
+  };
+
+  // ── Settings ──────────────────────────────────────
+  window.saveSettings = async function() {
+    try {
+      await setDoc(doc(db, "config", "site"), {
+        name:      document.getElementById("setting-name").value.trim(),
+        phone:     document.getElementById("setting-phone").value.trim(),
+        email:     document.getElementById("setting-email").value.trim(),
+        address:   document.getElementById("setting-address").value.trim(),
+        freeTrial: document.getElementById("setting-free-trial").checked,
+        marquee:   document.getElementById("setting-marquee").checked,
+      });
+      adminToast("✅ Saved", "Settings updated.");
+    } catch(e) {
+      adminToast("❌ Error", e.message, "error");
+    }
+  };
+
+  window.changePassword = async function() {
+    const np = document.getElementById("new-password").value;
+    const cp = document.getElementById("confirm-password").value;
+    if (!np || np.length < 8) {
+      adminToast("⚠️", "Password must be at least 8 characters.", "error");
+      return;
+    }
+    if (np !== cp) {
+      adminToast("⚠️", "Passwords do not match.", "error");
+      return;
+    }
+    try {
+      const user = auth.currentUser;
+      await updatePassword(user, np);
+      adminToast("✅ Password Updated", "Your admin password has been changed.");
+      document.getElementById("new-password").value  = "";
+      document.getElementById("confirm-password").value = "";
+    } catch(e) {
+      adminToast("❌ Error", "Please re-login and try again.", "error");
+    }
+  };
+
+  // ── Toast ──────────────────────────────────────────
+  function adminToast(msg, sub = "", type = "success") {
+    const el = document.getElementById("admin-toast");
+    el.innerHTML = `${msg}${sub ? `<span style="font-size:0.8rem;color:var(--grey);display:block;margin-top:3px;font-weight:400">${sanitize(sub)}</span>` : ""}`;
+    el.className = `admin-toast show ${type}`;
+    setTimeout(() => el.classList.remove("show"), 3500);
+  }
+
+  window.adminToast = adminToast;
+</script>
+
+<script>
+// ── Panel Navigation ────────────────────────────────
+const panelTitles = {
+  dashboard:   ["Dashboard", "Overview and quick actions"],
+  marquee:     ["Marquee News", "Manage the scrolling news ticker"],
+  photos:      ["Photo Gallery", "Upload and manage class photos by section"],
+  events:      ["Events & Calendar", "Schedule and manage upcoming events"],
+  submissions: ["Form Submissions", "View enrollment inquiries from parents"],
+  settings:    ["Site Settings", "Configure site details and preferences"],
+};
+
+function showPanel(id) {
+  document.querySelectorAll(".admin-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".sidebar-link").forEach(l => l.classList.remove("active"));
+  const panel = document.getElementById("panel-" + id);
+  const link  = document.getElementById("link-" + id);
+  if (panel) panel.classList.add("active");
+  if (link)  link.classList.add("active");
+  const [title, sub] = panelTitles[id] || [id, ""];
+  document.getElementById("topbar-title").textContent = title;
+  document.getElementById("topbar-sub").textContent   = sub;
+  const actionMap = {
+    photos:   () => document.getElementById("photo-file-input")?.click(),
+    events:   () => document.getElementById("ev-name")?.focus(),
+    marquee:  () => window.addMarqueeItem(),
+    default:  () => showPanel("photos"),
+  };
+  window._topbarActionFn = actionMap[id] || actionMap.default;
+}
+
+function topbarAction() {
+  if (window._topbarActionFn) window._topbarActionFn();
+}
+
+window.showPanel   = showPanel;
+window.topbarAction = topbarAction;
+</script>
+</body>
+</html>
