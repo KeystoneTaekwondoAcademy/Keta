@@ -412,9 +412,10 @@
       <h2 class="section-title" id="inst-heading">OUR <span>INSTRUCTORS</span></h2>
       <div class="section-divider"></div>
     </div>
-    <div class="instructors-grid">
+    <div class="instructors-grid" id="instructors-grid">
+      <!-- Loaded dynamically from Firestore -->
       <div class="instructor-card fade-in-left">
-        <div class="instructor-photo-placeholder" id="photo-ram">🥋</div>
+        <div class="instructor-photo-placeholder">🥋</div>
         <div class="instructor-info">
           <div class="instructor-rank">2nd Degree Black Belt · Chief Instructor</div>
           <div class="instructor-name">Instructor Ram Adhikari</div>
@@ -423,13 +424,11 @@
             He owned and operated a taekwondo school in Nepal and is experienced in teaching ALL AGES athletes
             to their best — keeping in mind the world taekwondo policy and strictly following
             <strong style="color:var(--gold)">US SAFE SPORT RULES AND REGULATIONS</strong>.
-            Our instructors have years of experience in Taekwondo and are committed to helping each student
-            reach their full potential. They are skilled in teaching both traditional and sport-style Taekwondo.
           </p>
         </div>
       </div>
       <div class="instructor-card fade-in-right">
-        <div class="instructor-photo-placeholder" id="photo-sonu">👩‍🏫</div>
+        <div class="instructor-photo-placeholder">👩‍🏫</div>
         <div class="instructor-info">
           <div class="instructor-rank">1st Degree Black Belt · Instructor</div>
           <div class="instructor-name">Instructor Sonu Adhikari</div>
@@ -437,7 +436,6 @@
             SONU ADHIKARI, first degree black belt, has been actively practicing for at least over 2 decades.
             She is experienced in handling our <strong style="color:var(--gold)">LITTLE TIGERS & CORE TIGERS</strong>,
             bringing patience, enthusiasm, and expertise to our youngest students.
-            Her nurturing teaching style creates a safe and encouraging environment for children of all abilities.
           </p>
         </div>
       </div>
@@ -706,6 +704,7 @@
       <div class="section-divider"></div>
     </div>
     <div class="testimonials-grid" id="testimonials-grid">
+      <!-- Approved reviews loaded dynamically from Firestore -->
       <div class="testimonial-card fade-in" style="transition-delay:0.1s">
         <div class="testimonial-stars">★★★★★</div>
         <p class="testimonial-text">"My son started Little Tigers and the transformation has been incredible. He's more focused at school and has so much confidence now. Instructor Ram is amazing with kids."</p>
@@ -738,6 +737,49 @@
             <div class="author-sub">Adult Student · 2025</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ── Leave a Review Form ───────────────────── -->
+    <div class="review-form-wrap fade-in" style="margin-top:48px">
+      <div class="text-center" style="margin-bottom:24px">
+        <span class="section-label">Share Your Experience</span>
+        <h3 style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:0.06em;color:var(--white);margin:8px 0 0">LEAVE A <span style="color:var(--gold)">REVIEW</span></h3>
+      </div>
+      <form id="review-form" class="review-form" novalidate>
+        <!-- Star Rating -->
+        <div class="review-stars-row" id="review-stars" aria-label="Star rating">
+          <span class="review-star" data-val="1">★</span>
+          <span class="review-star" data-val="2">★</span>
+          <span class="review-star" data-val="3">★</span>
+          <span class="review-star" data-val="4">★</span>
+          <span class="review-star" data-val="5">★</span>
+        </div>
+        <input type="hidden" id="review-rating" value="5"/>
+        <div class="review-form-row">
+          <div class="review-form-group">
+            <label class="review-label">Your Name *</label>
+            <input class="review-input" type="text" id="review-name" placeholder="e.g. Sarah M." maxlength="60" required/>
+          </div>
+          <div class="review-form-group">
+            <label class="review-label">Your Role</label>
+            <input class="review-input" type="text" id="review-role" placeholder="e.g. Parent of Little Tiger" maxlength="60"/>
+          </div>
+        </div>
+        <div class="review-form-group">
+          <label class="review-label">Your Review *</label>
+          <textarea class="review-input" id="review-text" rows="4" placeholder="Tell us about your experience at KETA..." maxlength="500" required></textarea>
+          <div style="font-size:0.75rem;color:var(--grey);text-align:right;margin-top:4px"><span id="review-char-count">0</span>/500</div>
+        </div>
+        <div style="text-align:center">
+          <button type="submit" class="btn btn-primary review-submit-btn" id="review-submit-btn">Submit Review</button>
+        </div>
+        <p style="font-size:0.75rem;color:var(--grey);text-align:center;margin-top:12px">Reviews are reviewed by our team before being published.</p>
+      </form>
+      <div id="review-success" style="display:none;text-align:center;padding:32px 0">
+        <div style="font-size:2.5rem;margin-bottom:12px">🙏</div>
+        <div style="font-family:var(--font-display);font-size:1.4rem;color:var(--gold);letter-spacing:0.08em;margin-bottom:8px">THANK YOU!</div>
+        <p style="color:var(--grey);font-size:0.9rem">Your review has been submitted and is pending approval.</p>
       </div>
     </div>
   </div>
@@ -825,7 +867,7 @@
 <!-- Firebase SDK (v10 modular) -->
 <script type="module">
   import { initializeApp }                  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs, onSnapshot, query, orderBy }
+  import { getFirestore, collection, getDocs, addDoc, query, orderBy, where, serverTimestamp }
                                             from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   // ── Replace with your Firebase config ──────────────
@@ -908,6 +950,100 @@ const firebaseConfig = {
     } catch(e) { console.warn("Events load:", e.message); }
   }
 
+  // ── Load Instructors ────────────────────────────────
+  async function loadInstructors() {
+    try {
+      const snap = await getDocs(query(collection(db, "instructors"), orderBy("order")));
+      if (snap.empty) return; // keep hardcoded fallback cards
+      const grid = document.getElementById("instructors-grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      const directions = ["fade-in-left", "fade-in-right", "fade-in-left", "fade-in-right"];
+      let i = 0;
+      snap.forEach(d => {
+        const inst = d.data();
+        const photo = inst.photoUrl
+          ? `<img src="${sanitize(inst.photoUrl)}" alt="${sanitize(inst.name)}" class="instructor-photo"/>`
+          : `<div class="instructor-photo-placeholder">🥋</div>`;
+        grid.innerHTML += `
+          <div class="instructor-card ${directions[i % 4] || 'fade-in'}">
+            ${photo}
+            <div class="instructor-info">
+              <div class="instructor-rank">${sanitize(inst.rank || "")}</div>
+              <div class="instructor-name">${sanitize(inst.name || "")}</div>
+              <p class="instructor-bio">${sanitize(inst.bio || "")}</p>
+            </div>
+          </div>`;
+        i++;
+      });
+      initScrollAnimations();
+    } catch(e) { console.warn("Instructors load:", e.message); }
+  }
+
+  // ── Load Approved Reviews ───────────────────────────
+  async function loadApprovedReviews() {
+    try {
+      const snap = await getDocs(
+        query(collection(db, "reviews"), where("status", "==", "approved"), orderBy("createdAt", "desc"))
+      );
+      if (snap.empty) return; // keep hardcoded fallback cards
+      const grid = document.getElementById("testimonials-grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      let i = 0;
+      snap.forEach(d => {
+        const r = d.data();
+        const stars = "★".repeat(r.rating || 5);
+        const delay  = (i * 0.1 + 0.1).toFixed(1);
+        const initial = (r.name || "?")[0].toUpperCase();
+        const year = r.createdAt?.toDate ? r.createdAt.toDate().getFullYear() : "";
+        grid.innerHTML += `
+          <div class="testimonial-card fade-in" style="transition-delay:${delay}s">
+            <div class="testimonial-stars">${stars}</div>
+            <p class="testimonial-text">"${sanitize(r.text || "")}"</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">${sanitize(initial)}</div>
+              <div>
+                <div class="author-name">${sanitize(r.name || "")}</div>
+                <div class="author-sub">${sanitize(r.role || "")}${year ? " · " + year : ""}</div>
+              </div>
+            </div>
+          </div>`;
+        i++;
+      });
+      initScrollAnimations();
+    } catch(e) { console.warn("Reviews load:", e.message); }
+  }
+
+  // ── Submit Review ───────────────────────────────────
+  document.getElementById("review-form")?.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const name   = document.getElementById("review-name").value.trim();
+    const role   = document.getElementById("review-role").value.trim();
+    const text   = document.getElementById("review-text").value.trim();
+    const rating = parseInt(document.getElementById("review-rating").value) || 5;
+    if (!name || !text) {
+      showToast("⚠️", "Missing Fields", "Please fill in your name and review.");
+      return;
+    }
+    const btn = document.getElementById("review-submit-btn");
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+    try {
+      await addDoc(collection(db, "reviews"), {
+        name, role, text, rating,
+        status: "pending",
+        createdAt: serverTimestamp(),
+      });
+      document.getElementById("review-form").style.display = "none";
+      document.getElementById("review-success").style.display = "block";
+    } catch(err) {
+      showToast("❌", "Error", "Could not submit. Please try again.");
+      btn.disabled = false;
+      btn.textContent = "Submit Review";
+    }
+  });
+
   // ── Init ────────────────────────────────────────────
   window.addEventListener("DOMContentLoaded", () => {
     loadMarquee();
@@ -918,11 +1054,13 @@ const firebaseConfig = {
     loadGallery("family");
     loadGallery("events-gallery");
     loadEvents();
+    loadInstructors();
+    loadApprovedReviews();
   });
 
   // ── Make functions available globally ───────────────
   window._db = db;
-  window._firestoreModules = { collection, getDocs, query, orderBy };
+  window._firestoreModules = { collection, getDocs, query, orderBy, where, addDoc, serverTimestamp };
 </script>
 
 <script>
@@ -937,6 +1075,37 @@ function sanitize(str) {
   d.appendChild(document.createTextNode(str));
   return d.innerHTML;
 }
+
+// ── Review Star Rating ───────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  const stars  = document.querySelectorAll(".review-star");
+  const ratingInput = document.getElementById("review-rating");
+  const textarea    = document.getElementById("review-text");
+  const charCount   = document.getElementById("review-char-count");
+
+  if (stars.length) {
+    let selected = 5;
+    function setStars(val) {
+      stars.forEach(s => {
+        s.classList.toggle("active", parseInt(s.dataset.val) <= val);
+      });
+      if (ratingInput) ratingInput.value = val;
+      selected = val;
+    }
+    setStars(5);
+    stars.forEach(s => {
+      s.addEventListener("mouseover", () => setStars(parseInt(s.dataset.val)));
+      s.addEventListener("mouseout",  () => setStars(selected));
+      s.addEventListener("click",     () => { selected = parseInt(s.dataset.val); setStars(selected); });
+    });
+  }
+
+  if (textarea && charCount) {
+    textarea.addEventListener("input", () => {
+      charCount.textContent = textarea.value.length;
+    });
+  }
+});
 
 // ── Page Loader ─────────────────────────────────────
 window.addEventListener("load", () => {

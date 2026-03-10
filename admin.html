@@ -59,6 +59,13 @@
         <button class="sidebar-link" onclick="showPanel('events')" id="link-events">
           <span class="link-icon">📅</span> Events & Calendar
         </button>
+        <button class="sidebar-link" onclick="showPanel('instructors')" id="link-instructors">
+          <span class="link-icon">🥋</span> Instructors
+        </button>
+        <button class="sidebar-link" onclick="showPanel('reviews')" id="link-reviews">
+          <span class="link-icon">⭐</span> Reviews
+          <span class="submission-badge" id="pending-reviews-count" style="display:none">0</span>
+        </button>
       </div>
 
       <div class="sidebar-section">
@@ -429,6 +436,77 @@
         </div>
       </div>
 
+      <!-- ══ INSTRUCTORS PANEL ════════════════════════ -->
+      <div class="admin-panel" id="panel-instructors">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">🥋 Add / Edit Instructor</span>
+          </div>
+          <div class="admin-card-body">
+            <input type="hidden" id="instructor-edit-id"/>
+            <label class="admin-label">Full Name</label>
+            <input class="admin-input" type="text" id="instructor-name" placeholder="e.g. Instructor Ram Adhikari"/>
+            <label class="admin-label">Rank & Title</label>
+            <input class="admin-input" type="text" id="instructor-rank" placeholder="e.g. 2nd Degree Black Belt · Chief Instructor"/>
+            <label class="admin-label">Bio</label>
+            <textarea class="admin-input" id="instructor-bio" rows="4" placeholder="Instructor biography..." style="resize:vertical"></textarea>
+            <label class="admin-label">Display Order (1 = first)</label>
+            <input class="admin-input" type="number" id="instructor-order" value="1" min="1"/>
+            <label class="admin-label">Photo</label>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+              <input type="file" id="instructor-photo-input" accept="image/png,image/jpeg,image/webp" style="display:none"/>
+              <button class="btn-admin btn-outline" onclick="document.getElementById('instructor-photo-input').click()">📷 Choose Photo</button>
+              <span id="instructor-photo-name" style="font-size:0.82rem;color:var(--grey)">No file chosen</span>
+            </div>
+            <div id="instructor-photo-preview" style="display:none;margin-bottom:16px">
+              <img id="instructor-preview-img" src="" alt="Preview" style="width:120px;height:120px;object-fit:cover;border-radius:50%;border:3px solid var(--gold)"/>
+            </div>
+            <div style="display:flex;gap:12px">
+              <button class="btn-admin btn-gold" onclick="saveInstructor()">💾 Save Instructor</button>
+              <button class="btn-admin btn-outline" onclick="clearInstructorForm()" id="instructor-cancel-btn" style="display:none">✕ Cancel Edit</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">👥 Current Instructors</span>
+            <button class="btn-admin btn-outline" onclick="loadInstructorsTable()" style="font-size:0.78rem;padding:6px 12px">↻ Refresh</button>
+          </div>
+          <div class="admin-card-body">
+            <div id="instructors-table-wrap">
+              <p style="color:var(--grey);font-size:0.85rem">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ REVIEWS PANEL ════════════════════════════ -->
+      <div class="admin-panel" id="panel-reviews">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">⏳ Pending Reviews</span>
+            <button class="btn-admin btn-outline" onclick="loadReviews()" style="font-size:0.78rem;padding:6px 12px">↻ Refresh</button>
+          </div>
+          <div class="admin-card-body">
+            <div id="pending-reviews-wrap">
+              <p style="color:var(--grey);font-size:0.85rem">Loading...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <span class="admin-card-title">✅ Approved Reviews</span>
+          </div>
+          <div class="admin-card-body">
+            <div id="approved-reviews-wrap">
+              <p style="color:var(--grey);font-size:0.85rem">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- end admin-content -->
   </main>
 </div><!-- end admin-shell -->
@@ -540,6 +618,8 @@ const firebaseConfig = {
     loadPhotos("all");
     loadEventsTable();
     loadSubmissions();
+    loadInstructorsTable();
+    loadReviews();
   }
 
   // ── Dashboard ─────────────────────────────────────
@@ -1018,6 +1098,255 @@ const firebaseConfig = {
   }
 
   window.adminToast = adminToast;
+
+  // ══════════════════════════════════════════════════
+  // ── INSTRUCTORS ────────────────────────────────────
+  // ══════════════════════════════════════════════════
+
+  async function loadInstructorsTable() {
+    const wrap = document.getElementById("instructors-table-wrap");
+    if (!wrap) return;
+    try {
+      const snap = await getDocs(query(collection(db, "instructors"), orderBy("order")));
+      if (snap.empty) {
+        wrap.innerHTML = `<p style="color:var(--grey);font-size:0.85rem">No instructors added yet.</p>`;
+        return;
+      }
+      let html = `<table class="admin-table"><thead><tr><th>Photo</th><th>Name</th><th>Rank</th><th>Order</th><th>Actions</th></tr></thead><tbody>`;
+      snap.forEach(d => {
+        const inst = d.data();
+        const img = inst.photoUrl
+          ? `<img src="${sanitize(inst.photoUrl)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--gold)"/>`
+          : `<div style="width:48px;height:48px;border-radius:50%;background:var(--black-soft);display:flex;align-items:center;justify-content:center;font-size:1.4rem">🥋</div>`;
+        html += `<tr>
+          <td>${img}</td>
+          <td>${sanitize(inst.name || "—")}</td>
+          <td style="font-size:0.8rem;color:var(--grey)">${sanitize(inst.rank || "—")}</td>
+          <td>${sanitize(String(inst.order ?? "—"))}</td>
+          <td>
+            <button class="btn-admin btn-outline" style="font-size:0.75rem;padding:4px 10px;margin-right:6px" onclick="window.editInstructor('${d.id}')">✏️ Edit</button>
+            <button class="btn-admin btn-red" style="font-size:0.75rem;padding:4px 10px" onclick="window.deleteInstructor('${d.id}')">🗑 Delete</button>
+          </td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      wrap.innerHTML = html;
+    } catch(e) {
+      wrap.innerHTML = `<p style="color:var(--red);font-size:0.85rem">Error: ${sanitize(e.message)}</p>`;
+    }
+  }
+
+  window.saveInstructor = async function() {
+    const editId = document.getElementById("instructor-edit-id").value.trim();
+    const name   = document.getElementById("instructor-name").value.trim();
+    const rank   = document.getElementById("instructor-rank").value.trim();
+    const bio    = document.getElementById("instructor-bio").value.trim();
+    const order  = parseInt(document.getElementById("instructor-order").value) || 1;
+    const file   = document.getElementById("instructor-photo-input").files[0];
+
+    if (!name || !rank) {
+      adminToast("⚠️ Missing Fields", "Name and Rank are required.", "error");
+      return;
+    }
+
+    let photoUrl = document.getElementById("instructor-preview-img").dataset.existingUrl || "";
+
+    // Upload photo to Cloudinary if a new file is chosen
+    if (file) {
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", CLOUDINARY_PRESET);
+        const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: "POST", body: fd });
+        if (!res.ok) throw new Error(`Cloudinary ${res.status}`);
+        const data = await res.json();
+        photoUrl = data.secure_url;
+      } catch(e) {
+        adminToast("❌ Upload Failed", e.message, "error");
+        return;
+      }
+    }
+
+    const payload = { name, rank, bio, order, photoUrl, updatedAt: serverTimestamp() };
+
+    try {
+      if (editId) {
+        await updateDoc(doc(db, "instructors", editId), payload);
+        adminToast("✅ Updated", `${name} updated.`);
+      } else {
+        payload.createdAt = serverTimestamp();
+        await addDoc(collection(db, "instructors"), payload);
+        adminToast("✅ Saved", `${name} added.`);
+      }
+      clearInstructorForm();
+      loadInstructorsTable();
+    } catch(e) {
+      adminToast("❌ Error", e.message, "error");
+    }
+  };
+
+  window.editInstructor = async function(id) {
+    try {
+      const snap = await getDocs(collection(db, "instructors"));
+      let data = null;
+      snap.forEach(d => { if (d.id === id) data = d.data(); });
+      if (!data) return;
+      document.getElementById("instructor-edit-id").value     = id;
+      document.getElementById("instructor-name").value        = data.name  || "";
+      document.getElementById("instructor-rank").value        = data.rank  || "";
+      document.getElementById("instructor-bio").value         = data.bio   || "";
+      document.getElementById("instructor-order").value       = data.order || 1;
+      const previewImg = document.getElementById("instructor-preview-img");
+      if (data.photoUrl) {
+        previewImg.src = data.photoUrl;
+        previewImg.dataset.existingUrl = data.photoUrl;
+        document.getElementById("instructor-photo-preview").style.display = "block";
+        document.getElementById("instructor-photo-name").textContent = "Current photo loaded";
+      }
+      document.getElementById("instructor-cancel-btn").style.display = "inline-flex";
+      document.getElementById("instructor-name").scrollIntoView({ behavior: "smooth", block: "center" });
+      adminToast("✏️ Edit Mode", `Editing ${data.name}`);
+    } catch(e) {
+      adminToast("❌ Error", e.message, "error");
+    }
+  };
+
+  window.deleteInstructor = async function(id) {
+    if (!confirm("Delete this instructor? This cannot be undone.")) return;
+    try {
+      await deleteDoc(doc(db, "instructors", id));
+      adminToast("🗑 Deleted", "Instructor removed.");
+      loadInstructorsTable();
+    } catch(e) {
+      adminToast("❌ Error", e.message, "error");
+    }
+  };
+
+  window.clearInstructorForm = function() {
+    document.getElementById("instructor-edit-id").value  = "";
+    document.getElementById("instructor-name").value     = "";
+    document.getElementById("instructor-rank").value     = "";
+    document.getElementById("instructor-bio").value      = "";
+    document.getElementById("instructor-order").value    = "1";
+    document.getElementById("instructor-photo-input").value = "";
+    document.getElementById("instructor-photo-name").textContent = "No file chosen";
+    document.getElementById("instructor-photo-preview").style.display = "none";
+    const previewImg = document.getElementById("instructor-preview-img");
+    previewImg.src = "";
+    previewImg.dataset.existingUrl = "";
+    document.getElementById("instructor-cancel-btn").style.display = "none";
+  };
+
+  // Photo preview on file select
+  document.getElementById("instructor-photo-input")?.addEventListener("change", function() {
+    const file = this.files[0];
+    if (!file) return;
+    document.getElementById("instructor-photo-name").textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById("instructor-preview-img");
+      img.src = e.target.result;
+      img.dataset.existingUrl = "";
+      document.getElementById("instructor-photo-preview").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  window.loadInstructorsTable = loadInstructorsTable;
+
+  // ══════════════════════════════════════════════════
+  // ── REVIEWS ────────────────────────────────────────
+  // ══════════════════════════════════════════════════
+
+  async function loadReviews() {
+    const pendingWrap  = document.getElementById("pending-reviews-wrap");
+    const approvedWrap = document.getElementById("approved-reviews-wrap");
+    if (!pendingWrap || !approvedWrap) return;
+
+    try {
+      const snap = await getDocs(query(collection(db, "reviews"), orderBy("createdAt", "desc")));
+      const pending  = [];
+      const approved = [];
+      snap.forEach(d => {
+        const r = { id: d.id, ...d.data() };
+        if (r.status === "approved") approved.push(r);
+        else pending.push(r);
+      });
+
+      // Update sidebar badge
+      const badge = document.getElementById("pending-reviews-count");
+      if (badge) {
+        badge.textContent = pending.length;
+        badge.style.display = pending.length > 0 ? "inline-flex" : "none";
+      }
+
+      // Pending
+      if (pending.length === 0) {
+        pendingWrap.innerHTML = `<p style="color:var(--grey);font-size:0.85rem">No pending reviews.</p>`;
+      } else {
+        pendingWrap.innerHTML = pending.map(r => reviewCard(r, "pending")).join("");
+      }
+
+      // Approved
+      if (approved.length === 0) {
+        approvedWrap.innerHTML = `<p style="color:var(--grey);font-size:0.85rem">No approved reviews yet.</p>`;
+      } else {
+        approvedWrap.innerHTML = approved.map(r => reviewCard(r, "approved")).join("");
+      }
+    } catch(e) {
+      pendingWrap.innerHTML = `<p style="color:var(--red);font-size:0.85rem">Error: ${sanitize(e.message)}</p>`;
+    }
+  }
+
+  function reviewCard(r, status) {
+    const stars = "★".repeat(r.rating || 5) + "☆".repeat(5 - (r.rating || 5));
+    const date  = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : "—";
+    const approveBtn = status === "pending"
+      ? `<button class="btn-admin btn-gold" style="font-size:0.75rem;padding:4px 12px" onclick="window.approveReview('${r.id}')">✅ Approve</button>`
+      : `<button class="btn-admin btn-outline" style="font-size:0.75rem;padding:4px 12px" onclick="window.unapproveReview('${r.id}')">↩ Unapprove</button>`;
+    return `
+      <div style="background:var(--black-soft);border:1px solid var(--black-border);border-radius:var(--radius);padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="color:var(--gold);font-size:1rem;letter-spacing:2px;margin-bottom:4px">${stars}</div>
+            <div style="font-weight:600;color:var(--white)">${sanitize(r.name || "Anonymous")}</div>
+            <div style="font-size:0.78rem;color:var(--grey);margin-bottom:8px">${sanitize(r.role || "")} · ${date}</div>
+            <p style="font-size:0.85rem;color:var(--grey-light);line-height:1.6;margin:0">"${sanitize(r.text || "")}"</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            ${approveBtn}
+            <button class="btn-admin btn-red" style="font-size:0.75rem;padding:4px 12px" onclick="window.deleteReview('${r.id}')">🗑 Delete</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  window.approveReview = async function(id) {
+    try {
+      await updateDoc(doc(db, "reviews", id), { status: "approved" });
+      adminToast("✅ Approved", "Review is now live on the site.");
+      loadReviews();
+    } catch(e) { adminToast("❌ Error", e.message, "error"); }
+  };
+
+  window.unapproveReview = async function(id) {
+    try {
+      await updateDoc(doc(db, "reviews", id), { status: "pending" });
+      adminToast("↩ Unapproved", "Review moved back to pending.");
+      loadReviews();
+    } catch(e) { adminToast("❌ Error", e.message, "error"); }
+  };
+
+  window.deleteReview = async function(id) {
+    if (!confirm("Permanently delete this review?")) return;
+    try {
+      await deleteDoc(doc(db, "reviews", id));
+      adminToast("🗑 Deleted", "Review removed.");
+      loadReviews();
+    } catch(e) { adminToast("❌ Error", e.message, "error"); }
+  };
+
+  window.loadReviews = loadReviews;
 </script>
 
 <script>
@@ -1029,6 +1358,8 @@ const panelTitles = {
   events:      ["Events & Calendar", "Schedule and manage upcoming events"],
   submissions: ["Form Submissions", "View enrollment inquiries from parents"],
   settings:    ["Site Settings", "Configure site details and preferences"],
+  instructors: ["Instructors", "Add, edit, and manage instructor profiles"],
+  reviews:     ["Reviews", "Approve or remove community reviews"],
 };
 
 function showPanel(id) {
@@ -1042,10 +1373,12 @@ function showPanel(id) {
   document.getElementById("topbar-title").textContent = title;
   document.getElementById("topbar-sub").textContent   = sub;
   const actionMap = {
-    photos:   () => document.getElementById("photo-file-input")?.click(),
-    events:   () => document.getElementById("ev-name")?.focus(),
-    marquee:  () => window.addMarqueeItem(),
-    default:  () => showPanel("photos"),
+    photos:      () => document.getElementById("photo-file-input")?.click(),
+    events:      () => document.getElementById("ev-name")?.focus(),
+    marquee:     () => window.addMarqueeItem(),
+    instructors: () => document.getElementById("instructor-name")?.focus(),
+    reviews:     () => window.loadReviews && window.loadReviews(),
+    default:     () => showPanel("photos"),
   };
   window._topbarActionFn = actionMap[id] || actionMap.default;
 }
